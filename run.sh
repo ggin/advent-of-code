@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./gradlew -PmainClass=advent/Day${1} run
+./gradlew -PmainClass=advent/DailyChallengeRunner run
