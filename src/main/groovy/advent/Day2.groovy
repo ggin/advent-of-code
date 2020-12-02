@@ -1,7 +1,5 @@
 package advent
 
-import java.util.regex.Matcher
-
 class Day2 {
     def static PATTERN = "(?<x>\\d+)-(?<y>\\d+)\\s(?<l>[a-z]):\\s(?<t>[a-z]+)"
     def static VALUES = Day1.class.getResource("/day2-input.txt").readLines()
