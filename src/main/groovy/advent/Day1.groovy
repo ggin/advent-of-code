@@ -1,12 +1,11 @@
 package advent
 
-class Day1 {
-    def static VALUES = Day1.class.getResource("/day1-input.txt").readLines().collect { it -> Integer.parseInt(it) }
+class Day1 implements DailyChallenge {
     def static MAGIC_NUMBER = 2020
 
-    static long puzzle1() {
+    long puzzle1(List<String> values) {
         def complements = new HashSet()
-        long n = VALUES.stream()
+        long n = toIntValues(values).stream()
                 .filter {
                     complements.add(MAGIC_NUMBER - it)
                     return complements.remove(it)
@@ -15,18 +14,14 @@ class Day1 {
         return n * (MAGIC_NUMBER - n)
     }
 
-    static long puzzle2() {
-        def complements = [VALUES, VALUES].combinations()
+    long puzzle2(List<String> values) {
+        def intValues = toIntValues(values)
+        def complements = [intValues , intValues ].combinations()
                 .findAll { a, b -> a < b && a + b < MAGIC_NUMBER }
                 .collectEntries { a, b -> [(MAGIC_NUMBER - a - b): [a, b]] }
 
-        def n = VALUES.find { complements.containsKey(it) }
-
+        def n = intValues .find { complements.containsKey(it) }
         return [n, *complements[n]].inject { a, b -> a * b } as long
     }
 
-    static void main(String[] args) {
-        println puzzle1()
-        println puzzle2()
-    }
 }

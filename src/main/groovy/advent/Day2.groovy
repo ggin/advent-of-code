@@ -1,17 +1,16 @@
 package advent
 
-class Day2 {
+class Day2 implements DailyChallenge {
     def static PATTERN = "(?<x>\\d+)-(?<y>\\d+)\\s(?<l>[a-z]):\\s(?<t>[a-z]+)"
-    def static VALUES = Day1.class.getResource("/day2-input.txt").readLines()
 
-    static long puzzle1() {
-        VALUES.collect {  parseLine(it) }
+    long puzzle1(List<String> values) {
+        values.collect {  parseLine(it) }
                 .count { it.with { (x..y).contains(t.count(l)) } }
     }
 
-    static long puzzle2() {
-        VALUES.collect {parseLine(it) }
-        .count{it.with {t[x - 1] == l ^ t[y - 1] == l } }
+    long puzzle2(List<String> values) {
+        values.collect {parseLine(it) }
+                .count{it.with {t[x - 1] == l ^ t[y - 1] == l } }
     }
 
     static Expando parseLine(String line) {
@@ -26,8 +25,4 @@ class Day2 {
         }
     }
 
-    static void main(String[] args) {
-        println puzzle1()
-        println puzzle2()
-    }
 }
