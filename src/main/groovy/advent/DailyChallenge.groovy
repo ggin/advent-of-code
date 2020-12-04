@@ -6,13 +6,21 @@ trait DailyChallenge {
         (getClass().simpleName =~ /\d+/).findAll().first()
     }
 
-    List<String> parseInputFile() {
-        getClass().getResource("/day${dayNumber()}-input.txt").readLines()
+    String parseInputFile() {
+        getClass().getResource("/day${dayNumber()}-input.txt").text
     }
 
     long puzzle1(List<String> values) { 0 }
 
     long puzzle2(List<String> values) { 0 }
+
+    long puzzle1(String text) {
+        puzzle1(text.readLines())
+    }
+
+    long puzzle2(String text) {
+        puzzle2(text.readLines())
+    }
 
     def toIntValues(l) { l.collect { it -> Integer.parseInt(it) } }
 
