@@ -17,7 +17,7 @@ abstract class DailyChallengeTest extends Specification {
         def inputAsString = inputPuzzle1 ?: input
 
         expect:
-        instance.puzzle1(inputAsString) == expectedResultPuzzle1
+            instance.puzzle1(inputAsString) == expectedResultPuzzle1
     }
 
     def puzzle2() {
@@ -26,7 +26,7 @@ abstract class DailyChallengeTest extends Specification {
         def inputAsString = inputPuzzle2 ?: input
 
         expect:
-        instance.puzzle2(inputAsString) == expectedResultPuzzle2
+            instance.puzzle2(inputAsString) == expectedResultPuzzle2
     }
 
 }
