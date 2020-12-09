@@ -24,6 +24,8 @@ trait DailyChallenge {
 
     def toIntValues(l) { l.collect { it -> Integer.parseInt(it) } }
 
+    def toLongValues(l) { l.collect { it -> Long.parseLong(it) } }
+
     def run() {
         println puzzle1(parseInputFile())
         println puzzle2(parseInputFile())

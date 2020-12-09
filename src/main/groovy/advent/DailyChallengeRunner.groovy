@@ -7,5 +7,4 @@ def run(DailyChallenge challenge) {
     println "Puzzle 2: ${challenge.puzzle2(values)}"
 }
 
-run(new Day8
-        ())
+run(new Day9())
