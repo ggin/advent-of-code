@@ -42,16 +42,10 @@ class Day3 : DailyChallenge {
     private fun extractColumn(values: List<String>, index: Int) =
         values.map { it.toCharArray()[index].toString().toInt() }
 
-    private fun mostCommonBitInColumn(values: List<String>, index: Int): String {
-        val bitSum = extractColumn(values, index).sum()
-        return if (values.size % 2 == 0 && bitSum == values.size / 2) {
-            "1"
-        } else if (bitSum > values.size / 2) {
-            "1"
-        } else {
-            "0"
-        }
-    }
+    private fun columnBitSum(values: List<String>, index: Int) = extractColumn(values, index).sum()
+
+    private fun mostCommonBitInColumn(values: List<String>, index: Int) =
+        if (2 * columnBitSum(values, index) >= values.size) "1" else "0"
 
     private fun leastCommonBitInColumn(values: List<String>, index: Int) =
         flipBits(mostCommonBitInColumn(values, index))
