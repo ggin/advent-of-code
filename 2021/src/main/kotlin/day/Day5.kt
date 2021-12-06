@@ -16,14 +16,18 @@ class Day5 : DailyChallenge {
         values.forEach { line ->
             segments.add(Segment(line))
         }
-        segments.filter { it.isHorizontalLine() }.map { it.getCoordinatesForHorizontalLine() }
+      /*  segments.filter { it.isHorizontalLine() }.map { it.getCoordinatesForHorizontalLine() }
             .flatten()
             .forEach { map.merge(it, 1L) { i, j -> i + j } }
 
         segments.filter { it.isVerticalLine() }.map { it.getCoordinatesForVerticalLine() }
             .flatten()
             .forEach { map.merge(it, 1L) { i, j -> i + j } }
-
+*/
+        segments.filter { it.isVerticalLine() || it.isHorizontalLine() }
+            .map { it.getCoordinatesForLine() }
+            .flatten()
+            .forEach { map.merge(it, 1L) { i, j -> i + j } }
         return map.filterValues { it > 1 }.count().toLong()
     }
 
@@ -54,11 +58,16 @@ class Day5 : DailyChallenge {
 
         private fun toPair(s: String) = s.split(",").let { Pair(it[0].toInt(), it[1].toInt()) }
 
-        fun firstOffset() = (end.first - start.first) / (max(abs(end.first - start.first), 1))
-        fun secondOffset() = (end.second - start.second) / (max(abs(end.second - start.second), 1))
+        private fun firstOffset() = (end.first - start.first) / (max(abs(end.first - start.first), 1))
+        private fun secondOffset() = (end.second - start.second) / (max(abs(end.second - start.second), 1))
         fun isHorizontalLine() = start.second == end.second
         fun isVerticalLine() = start.first == end.first
         fun isDiagonalLine() = !isVerticalLine() && !isHorizontalLine()
+
+        fun getCoordinatesForLine() =
+            IntStream.rangeClosed(0, abs(max(end.first - start.first, end.second - start.second)))
+                .mapToObj { Pair(start.first + it * firstOffset(), start.second + it * secondOffset()) }
+                .toList()
 
         fun getCoordinatesForHorizontalLine() =
             IntStream.rangeClosed(min(start.first, end.first), max(start.first, end.first))
