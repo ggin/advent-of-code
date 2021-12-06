@@ -1,7 +1,6 @@
 package day
 
 import common.DailyChallenge
-import java.util.stream.IntStream
 
 class Day6 : DailyChallenge {
 
@@ -10,19 +9,18 @@ class Day6 : DailyChallenge {
     override fun puzzle2(values: List<String>) = numberFishAfterXDays(values, 256)
 
     private fun numberFishAfterXDays(values: List<String>, nbDays: Int): Long {
-        var countByTimer = countByTimer(values)
-        IntStream.range(0, nbDays).forEach { _ ->
-            countByTimer = countByTimer.map { (timer, count) ->
-                val newTimer = if (timer == 0) 6 else timer - 1
-                if (newTimer == 0)
-                    listOf(Pair(newTimer, count), Pair(9, count))
+        val countByTimer = countByTimer(values)
+
+        return (0 until nbDays).toList().foldRight(countByTimer) { _, c ->
+            c.map { (timer, count) ->
+                if (timer == 0)
+                    listOf(Pair(6, count), Pair(8, count))
                 else
-                    listOf(Pair(newTimer, count))
+                    listOf(Pair(timer - 1, count))
             }.flatten()
                 .groupBy({ it.first }, { it.second })
                 .mapValues { (_, values) -> values.sum() }
-        }
-        return countByTimer.filterKeys { it <= 8 }.values.sum()
+        }.values.sum()
     }
 
     private fun countByTimer(values: List<String>): Map<Int, Long> {
