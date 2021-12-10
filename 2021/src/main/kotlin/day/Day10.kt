@@ -13,19 +13,19 @@ class Day10 : DailyChallenge {
     }
 
     override fun puzzle1(values: List<String>) =
-        values.mapNotNull { illegalCharacter(it.toCharArray()) }
+        values.mapNotNull { illegalCharacter(it) }
             .sumOf { SYNTAX_CHECKER_MAPPINGS[it]!! }
 
-    override fun puzzle2(values: List<String>) = values.map { it.toCharArray() }
-        .filter { illegalCharacter(it) == null }
-        .map { missingSequence(it) }
-        .map { calculateScore(it) }
-        .sorted().let { scores -> scores[scores.size / 2] }
+    override fun puzzle2(values: List<String>) =
+        values.filter { illegalCharacter(it) == null }
+            .map { missingSequence(it) }
+            .map { calculateScore(it) }
+            .sorted().let { scores -> scores[scores.size / 2] }
 
-    private fun illegalCharacter(line: CharArray) =
+    private fun illegalCharacter(line: String) =
         Stack().let { line.dropWhile { c -> it.updateStack(c) }.firstOrNull() }
 
-    private fun missingSequence(line: CharArray) =
+    private fun missingSequence(line: String) =
         Stack().apply { line.forEach { updateStack(it) } }
 
     private fun Char.isOpeningChar() = CHAR_MAPPINGS.containsKey(this)
