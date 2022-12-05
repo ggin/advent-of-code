@@ -1,22 +1,23 @@
 package day
 
 import DailyChallengeTest
+import common.DailyChallenge
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class Day5Test : DailyChallengeTest {
+internal class Day5Test {
 
     private val challenge = Day5()
 
     @Test
     fun `puzzle 1`() {
-        val result = puzzle1(challenge)
-        assertEquals(0L, result)
+        var result = challenge.puzzle1(challenge.getInput("test-input"))
+        assertEquals("CMZ", result)
     }
 
     @Test
     fun `puzzle 2`() {
-        val result = puzzle2(challenge)
-        assertEquals(0L, result)
+        var result = challenge.puzzle2(challenge.getInput("test-input"))
+        assertEquals("MCD", result)
     }
 }
