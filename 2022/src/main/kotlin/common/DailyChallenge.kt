@@ -9,12 +9,13 @@ interface DailyChallenge {
     fun getInput(suffix: String) = Input(filepath(suffix))
     fun puzzle1(input: Input): Long
     fun puzzle2(input: Input): Long
+    fun puzzle2S(input: Input): String = ""
 
     fun run() {
         val input = getInput("input")
         println("Running day ${dayNumber()} challenge")
         println("Puzzle 1: ${puzzle1(input)}")
-        println("Puzzle 2: ${puzzle2(input)}")
+        println("Puzzle 2: ${puzzle2S(input)}")
     }
 
 }
