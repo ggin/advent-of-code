@@ -2,7 +2,8 @@ package common
 
 class Input(filepath: String) {
 
-    val values = DailyChallenge::class.java.getResource(filepath)!!.readText().trimEnd().lines()
+    val content = DailyChallenge::class.java.getResource(filepath)!!.readText().trimEnd()
+    val values = content.lines()
 
 
     fun toInt() = values.map { it.toInt() }

@@ -15,7 +15,7 @@ interface DailyChallenge {
         val input = getInput("input")
         println("Running day ${dayNumber()} challenge")
         println("Puzzle 1: ${puzzle1(input)}")
-        println("Puzzle 2: ${puzzle2S(input)}")
+        println("Puzzle 2: ${puzzle2(input)}")
     }
 
 }
