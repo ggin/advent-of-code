@@ -5,16 +5,47 @@ import common.Input
 
 class Day2 : DailyChallenge {
 
-    override fun puzzle1(input: Input) = input.toPairs { s -> toShape(s[0]) }
-        .sumOf { shapeScore(it.second) + roundScore(it.first, it.second) }
+    private val regex = "Game (\\d+): ([a-z\\d\\s,;]+)".toRegex()
+    private val blue = "(\\d+(?= blue))".toRegex()
+    private val red = "(\\d+(?= red))".toRegex()
+    private val green = "(\\d+(?= green))".toRegex()
 
-    override fun puzzle2(input: Input) = input.toPairs { s -> toShape(s[0]) }
-        .sumOf { shapeScore(findShape(it.first, it.second)) + roundScore(it.second) }
+    override fun puzzle1(input: Input): Long {
+        return input.values.sumOf { line ->
+            val group = regex.find(line)!!
+            val index = group.groupValues[1].toLong()
+            val ignore = group.groupValues[2].split(";")
+                .map { it.trim() }
+                .any {
+                    val b = blue.find(it)?.groupValues?.get(1)?.toInt() ?: 0
+                    val r = red.find(it)?.groupValues?.get(1)?.toInt() ?: 0
+                    val g = green.find(it)?.groupValues?.get(1)?.toInt() ?: 0
+                    r > 12 || g > 13 || b > 14
+                }
+            if (ignore) 0L else index
+        }
 
-    private fun toShape(c: Char) = (c - 'A') % 23 // A=X=0, B=Y=1, C=Z=2
-    private fun shapeScore(s: Int) = s + 1
-    private fun roundScore(p1: Int, p2: Int) = (p2 - p1 + 1).mod(3) * 3L
-    private fun findShape(p1: Int, outcome: Int) = (p1 + outcome - 1).mod(3)
+    }
 
-    private fun roundScore(outcome: Int) = outcome * 3L
+    override fun puzzle2(input: Input): Long {
+        return input.values.sumOf { line ->
+            val group = regex.find(line)!!
+            var maxB = 1L
+            var maxR = 1L
+            var maxG = 1L
+            group.groupValues[2].split(";")
+                .map { it.trim() }
+                .forEach {
+                    val b = blue.find(it)?.groupValues?.get(1)?.toLong() ?: 0L
+                    if (b > maxB) maxB = b
+                    val r = red.find(it)?.groupValues?.get(1)?.toLong() ?: 0L
+                    if (r > maxR) maxR = r
+                    val g = green.find(it)?.groupValues?.get(1)?.toLong() ?: 0L
+                    if (g > maxG) maxG = g
+                }
+            maxB * maxR * maxG
+        }
+
+    }
+
 }

@@ -11,12 +11,12 @@ internal class Day1Test : DailyChallengeTest {
     @Test
     fun `puzzle 1`() {
         val result = puzzle1(challenge)
-        assertEquals(24000L, result)
+        assertEquals(8, result)
     }
 
     @Test
     fun `puzzle 2`() {
-        val result = puzzle2(challenge)
-        assertEquals(45000L, result)
+        val result = challenge.puzzle2(challenge.getInput("test-input-part2"))
+        assertEquals(364, result)
     }
 }
