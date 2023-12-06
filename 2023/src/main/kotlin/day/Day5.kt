@@ -1,75 +1,85 @@
 package day
 
+import common.DailyChallenge
 import common.Input
 import java.util.*
 
-typealias Stacks = MutableMap<Int, Stack<Char>>
+class Day5 : DailyChallenge {
 
-class Day5 {
+    /*
+    Puzzle 1: 265018614
+Puzzle 2: 63179500
+     */
+    private val mapRegex = "(\\w+)-to-(\\w+) map:".toRegex()
 
-    private val regex = "move (?<m>\\d+) from (?<s>\\d+) to (?<e>\\d+)".toRegex()
-
-    fun puzzle1(input: Input): String {
-        val stacks = parseStacks(input)
-        moveStacks(input, stacks, this::moveCratesIndividually)
-        return (1..stacks.size).map { stacks[it]!!.peek() }.joinToString("")
+    private data class M(val fromCat: String, val toCat: String, val ranges: MutableList<Range> = mutableListOf()) {
+        internal fun map(n: Long) = ranges.firstNotNullOfOrNull { it.map(n) } ?: n
     }
 
-    fun puzzle2(input: Input): String {
-        val stacks = parseStacks(input)
-        moveStacks(input, stacks, this::moveCratesInGroups)
-        return (1..stacks.size).map { stacks[it]!!.peek() }.joinToString("")
+    private data class Range(val sourceFrom: Long, val destFrom: Long, val length: Long) {
+        internal fun map(n: Long) = if (n >= sourceFrom && n < sourceFrom + length) destFrom + n - sourceFrom else null
     }
 
-    private fun parseStacks(input: Input): MutableMap<Int, Stack<Char>> {
-        val stacks = mutableMapOf<Int, Stack<Char>>()
-        input.values.takeWhile { it.contains("[") }
+    private fun parseMaps(text: List<String>): List<M> {
+        val maps = mutableListOf<M>()
+        var fromCat = ""
+        var toCat = ""
+        lateinit var m: M
+        text.filter { it.isNotEmpty() }
             .forEach { line ->
-                line.chunked(4) { it[1] }.forEachIndexed { index, crate ->
-                    if (crate != ' ')
-                        stacks.getOrPut(index + 1) { Stack<Char>() }.add(0, crate)
+                if (mapRegex.matches(line)) {
+                    fromCat = mapRegex.find(line)!!.groupValues[1]
+                    toCat = mapRegex.find(line)!!.groupValues[2]
+                    m = M(fromCat, toCat)
+                    maps += m
+                } else {
+                    val split = line.split(" ")
+                    m.ranges += Range(split[1].toLong(), split[0].toLong(), split[2].toLong())
                 }
             }
-        return stacks
+        return maps
     }
 
-    private fun moveStacks(
-        input: Input,
-        stacks: MutableMap<Int, Stack<Char>>,
-        strategy: (stacks: Stacks, nbCrates: Int, fromStack: Int, toStack: Int) -> Unit
-    ) {
-        input.values.filter { it.startsWith("move") }
-            .forEach {
-                regex.find(it)!!.groupValues.let { match ->
-                    strategy(
-                        stacks,
-                        match[1].toInt(),
-                        match[2].toInt(),
-                        match[3].toInt()
-                    )
-                }
-            }
+    private fun parseSeeds(text: String) = text.split(":")[1]
+        .split(" ")
+        .filterNot { it.isEmpty() }
+        .map { it.toLong() }
+
+    /*    private fun parseSeedRanges(text: String) = text.split(":")[1]
+                .split(" ")
+                .filterNot { it.isEmpty() }
+                .chunked(2)
+                .flatMap { it[0].toLong() until it[0].toLong() + it[1].toInt() }
+                .distinct() */
+
+    private fun parseSeedRanges(text: String) = text.split(":")[1]
+        .split(" ")
+        .filterNot { it.isEmpty() }
+        .chunked(2)
+        .map { LongRange(it[0].toLong(), it[0].toLong() + it[1].toInt() - 1) }
+
+    private fun calculateLocation(seed: Long, maps: List<M>): Long {
+        var destination = maps.first { it.fromCat == "seed" }
+        var v = seed
+        while (destination.toCat != "location") {
+            v = destination.map(v)
+            destination = maps.first { it.fromCat == destination.toCat }
+        }
+        return destination.map(v)
     }
 
-    private fun moveCratesIndividually(stacks: Stacks, nbCrates: Int, fromStack: Int, toStack: Int) {
-        (1..nbCrates).forEach { _ -> stacks[toStack]!!.push(stacks[fromStack]!!.pop()) }
+    // 79753136
+    override fun puzzle1(input: Input): Long {
+        val seeds = parseSeeds(input.values.first())
+        val maps = parseMaps(input.values.drop(1))
+        return seeds.minOf { calculateLocation(it, maps) }
     }
 
-    private fun moveCratesInGroups(stacks: Stacks, nbCrates: Int, fromStack: Int, toStack: Int) {
-        val insertIndex = stacks[toStack]!!.size
-        (1..nbCrates).forEach { _ -> stacks[toStack]!!.add(insertIndex, stacks[fromStack]!!.pop()) }
+    override fun puzzle2(input: Input): Long {
+        val seedRanges = parseSeedRanges(input.values.first())
+        val maps = parseMaps(input.values.drop(1))
+        return seedRanges.minOf { range -> range.minOf { calculateLocation(it, maps) } }
     }
 
-    private fun filepath(suffix: String) = "/day5-${suffix}.txt"
-
-    fun getInput(suffix: String) = Input(filepath(suffix))
-
-
-    fun run() {
-        val input = getInput("input")
-        println("Running day 5 challenge")
-        println("Puzzle 1: ${puzzle1(input)}")
-        println("Puzzle 2: ${puzzle2(input)}")
-    }
 
 }
