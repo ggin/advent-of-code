@@ -17,7 +17,7 @@ class Day2 : DailyChallenge {
         }
         .toLong()
 
-    private fun isSafe(l: List<Long>, tolLevel: Int = 0): Boolean {
+    private tailrec fun isSafe(l: List<Long>, tolLevel: Int = 0): Boolean {
         if (tolLevel == -1)
             return false
         if (l.size == 1)
