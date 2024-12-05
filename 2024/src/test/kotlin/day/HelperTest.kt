@@ -1,0 +1,4 @@
+package day
+
+class HelperTest {
+}
