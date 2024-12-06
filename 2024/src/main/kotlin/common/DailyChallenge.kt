@@ -1,5 +1,7 @@
 package common
 
+import kotlin.time.measureTime
+
 interface DailyChallenge {
 
     fun dayNumber() = """\d+""".toRegex().find(javaClass.simpleName)!!.value.toInt()
@@ -14,8 +16,12 @@ interface DailyChallenge {
     fun run() {
         val input = getInput("input")
         println("Running day ${dayNumber()} challenge")
-        println("Puzzle 1: ${puzzle1(input)}")
-        println("Puzzle 2: ${puzzle2(input)}")
+        measureTime {
+            println("Puzzle 1: ${puzzle1(input)}")
+        }.apply { println("Time taken: $this") }
+        measureTime {
+            println("Puzzle 2: ${puzzle2(input)}")
+        }.apply { println("Time taken: $this") }
     }
 
 }
