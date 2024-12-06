@@ -5,6 +5,7 @@ import common.Input
 
 typealias Grid = List<List<String>>
 typealias Coordinates = Pair<Int, Int>
+
 data class Position(val x: Int, val y: Int, val direction: Int) {
     fun coordinates(): Coordinates = Pair(x, y)
     fun rotate() = Position(x, y, (direction + 1) % 4)
@@ -52,27 +53,27 @@ class Day6 : DailyChallenge {
         val newMM = grid.map { it.toMutableList() }.toMutableList()
         newMM[newObstacle.x][newObstacle.y] = "#"
 
-        return if (valid(newMM, newObstacle, listOf(newObstacle))) newObstacle else null
+        return if (doesObstacleCauseLoop(newMM, newObstacle, listOf(newObstacle))) newObstacle else null
     }
 
-    private fun valid(grid: Grid, position: Position, obstaclesEncountered: List<Position>): Boolean {
-        val nextObstacle = nextObstruction(grid, position) ?: return false
+    private fun doesObstacleCauseLoop(grid: Grid, position: Position, obstaclesEncountered: List<Position>): Boolean {
+        val nextObstacle = findNextObstacle(grid, position) ?: return false
         if (obstaclesEncountered.contains(nextObstacle)) return true // loop detected
-        return valid(grid, nextObstacle, obstaclesEncountered + nextObstacle)
+        return doesObstacleCauseLoop(grid, nextObstacle, obstaclesEncountered + nextObstacle)
     }
 
-    private fun nextObstruction(grid: Grid, position: Position) = moveFunctions[(position.direction + 1) % 4](grid, position)
+    private fun findNextObstacle(grid: Grid, position: Position) = findNextObstacleFunctions[(position.direction + 1) % 4](grid, position)
 
-    private val moveFunctions: List<(Grid, Position) -> Position?> = listOf(
-        { m, p -> m.up(p) },
-        { m, p -> m.right(p) },
-        { m, p -> m.down(p) },
-        { m, p -> m.left(p) })
+    private val findNextObstacleFunctions: List<(Grid, Position) -> Position?> = listOf(
+        { m, p -> m.nextObstacleUp(p) },
+        { m, p -> m.nextObstacleOnTheRight(p) },
+        { m, p -> m.nextObstacleDown(p) },
+        { m, p -> m.nextObstacleOnTheLeft(p) })
 
-    private fun Grid.right(p: Position) = this[p.x + 1].withIndex().filter { it.index > p.y && it.value == "#" }.map { Position(p.x + 1, it.index, 1) }.firstOrNull()
-    private fun Grid.down(p: Position) = this.withIndex().filter { it.index > p.x && this[it.index][p.y - 1] == "#" }.map { Position(it.index, p.y - 1, 2) }.firstOrNull()
-    private fun Grid.left(p: Position) = this[p.x - 1].withIndex().filter { it.index < p.y && it.value == "#" }.map { Position(p.x - 1, it.index, 3) }.lastOrNull()
-    private fun Grid.up(p: Position) = this.withIndex().filter { it.index < p.x && this[it.index][p.y + 1] == "#" }.map { Position(it.index, p.y + 1, 0) }.lastOrNull()
+    private fun Grid.nextObstacleOnTheRight(p: Position) = this[p.x + 1].withIndex().filter { it.index > p.y && it.value == "#" }.map { Position(p.x + 1, it.index, 1) }.firstOrNull()
+    private fun Grid.nextObstacleDown(p: Position) = this.withIndex().filter { it.index > p.x && this[it.index][p.y - 1] == "#" }.map { Position(it.index, p.y - 1, 2) }.firstOrNull()
+    private fun Grid.nextObstacleOnTheLeft(p: Position) = this[p.x - 1].withIndex().filter { it.index < p.y && it.value == "#" }.map { Position(p.x - 1, it.index, 3) }.lastOrNull()
+    private fun Grid.nextObstacleUp(p: Position) = this.withIndex().filter { it.index < p.x && this[it.index][p.y + 1] == "#" }.map { Position(it.index, p.y + 1, 0) }.lastOrNull()
 
     private fun Grid.at(xy: Position): String {
         if (xy.x < 0 || xy.y < 0 || xy.x >= this.size || xy.y >= this[0].size) return "0"
