@@ -3,11 +3,11 @@ package day
 import common.DailyChallenge
 import common.Input
 import common.Matrix
-import common.toMatrix
+import common.toStringMatrix
 
 class Day8 : DailyChallenge {
     override fun puzzle1(input: Input): Long {
-        val matrix = input.toMatrix()
+        val matrix = input.toStringMatrix()
         val antennas = getAntennas(matrix)
 
         val antinodes = antennas.keys.flatMap { symbol ->
@@ -22,7 +22,7 @@ class Day8 : DailyChallenge {
     }
 
     override fun puzzle2(input: Input): Long {
-        val matrix = input.toMatrix()
+        val matrix = input.toStringMatrix()
         val antennas = getAntennas(matrix)
 
         val antinodes = antennas.keys.flatMap { symbol ->

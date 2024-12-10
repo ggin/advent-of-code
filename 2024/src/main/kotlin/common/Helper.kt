@@ -15,7 +15,9 @@ fun <T> permute(list: List<T>): List<List<T>> = when {
         }.flatten()
 }
 
-fun Input.toMatrix() = Matrix(this.toStringList())
+fun Input.toStringMatrix() = Matrix(this.toStringList())
+fun Input.toLongMatrix() = Matrix(this.toLongList())
+fun Input.toIntMatrix() = Matrix(this.toIntList())
 
 data class Matrix<T>(val matrix: List<List<T>>) {
 
@@ -35,6 +37,19 @@ data class Matrix<T>(val matrix: List<List<T>>) {
 
     fun contains(it: Pair<Int, Int>): Boolean {
         return it.first in 0..<xCount && it.second in 0 ..< yCount
+    }
+
+    fun findFirst(t: T): Value<T>? {
+        return matrix.mapIndexedNotNull { x, l ->
+            val y = l.mapIndexedNotNull { y, s -> if (s == t) y else null }.firstOrNull()
+            if (y != null) Value(t, Pair(x, y)) else null
+        }.firstOrNull()
+    }
+
+    fun findAll(t: T): List<Value<T>> {
+        return matrix.flatMapIndexed { x, l ->
+            l.mapIndexedNotNull { y, s -> if (s == t) Value(s, Pair(x, y)) else null }
+        }
     }
 
     data class Value<T>(val value: T, val xy: Pair<Int, Int>) {

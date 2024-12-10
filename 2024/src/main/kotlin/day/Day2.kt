@@ -4,7 +4,7 @@ import common.DailyChallenge
 import common.Input
 
 class Day2 : DailyChallenge {
-    override fun puzzle1(input: Input) = input.toLongList()
+    override fun puzzle1(input: Input) = input.toLongList(" ")
         .count { isSafe(it) || isSafe(it.reversed()) }
         .toLong()
 
