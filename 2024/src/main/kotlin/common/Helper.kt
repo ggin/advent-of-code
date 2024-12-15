@@ -52,6 +52,29 @@ data class Matrix<T>(val matrix: List<List<T>>) {
         }
     }
 
+    fun set(xy: Pair<Int, Int>, value: T): Matrix<T> {
+        val newMatrix = matrix.mapIndexed { x, l ->
+            if (x == xy.first) l.mapIndexed { y, v -> if (y == xy.second) value else v }
+            else l
+        }
+        return Matrix(newMatrix)
+    }
+
+    fun set(x: Int, y: Int, value: T) = set(Pair(x, y), value)
+
+    override fun toString(): String {
+        return matrix.joinToString("\n") { it.joinToString("") }
+    }
+
+    fun print() {
+        for (x in 0 until xCount) {
+            for (y in 0 until yCount) {
+                print(at(x, y)?.value)
+            }
+            println()
+        }
+    }
+
     data class Value<T>(val value: T, val xy: Pair<Int, Int>) {
         val x = xy.first
         val y = xy.second
