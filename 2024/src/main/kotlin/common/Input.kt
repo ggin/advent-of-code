@@ -3,7 +3,7 @@ package common
 class Input(filepath: String) {
 
     val content = DailyChallenge::class.java.getResource(filepath)!!.readText().trimEnd()
-    val values = content.lines()
+    val values: List<String> = content.lines()
 
 
     fun toInt() = values.map { it.toInt() }
