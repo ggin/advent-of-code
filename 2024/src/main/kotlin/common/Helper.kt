@@ -60,6 +60,10 @@ data class Matrix<T>(val matrix: List<List<T>>) {
         return Matrix(newMatrix)
     }
 
+    fun allValidDirections(v: Value<T>) : List<DirectionalValue<T>> {
+        return Direction.allDirections(v.xy).mapNotNull { d -> at(d.first)?.let { DirectionalValue(it.value, it.xy, d.second) } }
+    }
+
     fun set(x: Int, y: Int, value: T) = set(Pair(x, y), value)
 
     override fun toString(): String {
@@ -75,8 +79,50 @@ data class Matrix<T>(val matrix: List<List<T>>) {
         }
     }
 
-    data class Value<T>(val value: T, val xy: Pair<Int, Int>) {
+    open class Value<T>(val value: T, val xy: Pair<Int, Int>) {
         val x = xy.first
         val y = xy.second
+        override fun toString(): String {
+            return "Value(x=$x, y=$y, value=$value)"
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Value<*>) return false
+
+            if (value != other.value) return false
+            if (xy != other.xy) return false
+            if (x != other.x) return false
+            if (y != other.y) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = value?.hashCode() ?: 0
+            result = 31 * result + xy.hashCode()
+            result = 31 * result + x
+            result = 31 * result + y
+            return result
+        }
+
+
+    }
+
+    class DirectionalValue<T>(value: T, xy: Pair<Int, Int>, val direction: Direction) : Value<T>(value, xy)
+
+    enum class Direction(val move: (Pair<Int, Int>) -> Pair<Int, Int>) {
+        UP({ p -> Pair(p.first - 1, p.second) }),
+        LEFT({ p -> Pair(p.first, p.second - 1) }),
+        DOWN({ p -> Pair(p.first + 1, p.second) }),
+        RIGHT({ p -> Pair(p.first, p.second + 1) });
+
+        fun moveNTimes(p: Pair<Int, Int>, n: Int) : Pair<Int, Int> {
+            return (1..n).fold(p) { acc, _ -> move(acc) }
+        }
+
+        companion object {
+            fun allDirections(p: Pair<Int, Int>) = entries.map { Pair(it.move(p), it) }
+        }
     }
 }
