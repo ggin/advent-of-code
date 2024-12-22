@@ -4,14 +4,14 @@ import DailyChallengeTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class Day21Test : DailyChallengeTest {
+internal class Day23Test : DailyChallengeTest {
 
-    private val challenge = Day21()
+    private val challenge = Day23()
 
     @Test
     fun `puzzle 1`() {
         val result = puzzle1(challenge)
-        assertEquals(126384L, result)
+        assertEquals(0L, result)
     }
 
     @Test
