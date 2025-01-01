@@ -3,6 +3,16 @@ package common
 fun combineIntoPairs(r: IntRange) = combineIntoPairs(r, r)
 fun combineIntoPairs(r1: IntRange, r2: IntRange) = r1.flatMap { x -> r2.map { Pair(x, it) } }
 
+operator fun <T> Iterable<T>.times(other: Iterable<T>): Iterable<Iterable<T>> {
+    val otherSeq = other.asSequence()
+    return flatMap{ a -> otherSeq.map { b -> listOf(a, b) }}
+}
+
+
+fun <T> cartesianProduct(iterables: Iterable<Iterable<T>>, reduce: (Iterable<T>) -> T): Iterable<T> {
+    return iterables.reduce { acc, i -> (acc * i).map { reduce(it) }}
+}
+
 // from https://gist.github.com/trygvea/a2d9cdbc19ceff3df7eb64ccef3c0597
 fun <T> permute(list: List<T>): List<List<T>> = when {
     list.size > 10 -> throw Exception("You probably dont have enough memory to keep all those permutations")
