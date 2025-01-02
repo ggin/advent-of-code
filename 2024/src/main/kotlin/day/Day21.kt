@@ -23,10 +23,11 @@ class Day21 : DailyChallenge {
             val instructions = listOf("A") + firstCode
             val firstKeypadMoves = getMoves(numericKeypadMoves, instructions.joinToString("")).map { "A$it" }
             var moves = firstKeypadMoves
-            (1..2).forEach { _ ->
+            (1..2).forEach { iter ->
                 moves = moves.flatMap { getMoves(digitalKeypadMoves, it).map { "A$it" } }
                 val minLength = moves.minBy { it.length }.length
                 moves = moves.filter { it.length == minLength }
+//                println("Iteration ${iter} Min length: ${minLength}")
             }
             val minLength = moves.minBy { it.length }.length.toLong() - 1
 
@@ -136,6 +137,58 @@ class Day21 : DailyChallenge {
         return buildMaps(nextGroups)
     }
 
+    private fun instructionsForNextRobot(currentInstructions: String): List<String> {
+        val groups = currentInstructions.split("A").dropLast(1)
+        val nextGroups = groups.map { group ->
+            val groupInstructions = "A${group}A"
+            val possibleNextInstructions =
+                groupInstructions.zipWithNext().map { directionalMappings[it]!!.map { s -> "${s}A" } }
+            cartesianProduct(possibleNextInstructions) { it.reduce { acc, s -> acc + s } }
+        }
+        return cartesianProduct(nextGroups) { it.reduce { acc, s -> acc + s } }.toList()
+    }
+
+    private fun nextInstructionsForNextRobot(currentInstructions: Instructions): List<Instructions> {
+        val nextGroups = currentInstructions.groups().map { group ->
+            val groupInstructions = "A${group.first}"
+            val possibleNextInstructions = groupInstructions.zipWithNext()
+                .map { directionalMappings[it]!!.map { s -> Instructions.of("${s}A", group.second) } }
+
+            cartesianProduct(possibleNextInstructions) { it.reduce { acc, i -> acc.merge(i) } }
+        }
+
+        return cartesianProduct(nextGroups) { it.reduce { acc, i -> acc.merge(i) } }.toList()
+    }
+
+    data class PreviousInstructions(val previousInstructions: List<Instructions>) {
+        fun add(instruction: Instructions): PreviousInstructions {
+            return PreviousInstructions(previousInstructions + instruction)
+        }
+
+        fun current() = previousInstructions.last()
+    }
+
+    data class Instructions(val map: Map<String, Long>) {
+
+        companion object {
+            fun of(initialInstruction: String, initialCount: Long = 1L): Instructions {
+                val map = mutableMapOf<String, Long>()
+                initialInstruction.split("A").dropLast(1).map { "${it}A" }.forEach { map.merge(it, initialCount, Long::plus) }
+                return Instructions(map)
+            }
+        }
+
+        fun groups() = map.map { Pair(it.key, it.value) }
+
+        fun merge(instructions: Instructions): Instructions {
+            val localMap = map.toMutableMap()
+            instructions.map.forEach { (k, v) -> localMap.merge(k, v, Long::plus) }
+            return Instructions(localMap)
+        }
+
+        fun length() = map.map { it.value * it.key.length.toLong() }.sum()
+
+    }
 
     override fun puzzle2(input: Input): Long {
         val codes = input.values
@@ -144,30 +197,123 @@ class Day21 : DailyChallenge {
 
         val digitalKeypadMoves = digitalKeypadMoves()
 
-        codes.subList(0, 1).forEach { code ->
+        return codes.sumOf { code ->
             val firstCode = code.split("").filter { it.isNotEmpty() }
             val instructions = listOf("A") + firstCode
             val firstKeypadMoves = getMoves(numericKeypadMoves, instructions.joinToString(""))
             println("code $code: first moves: $firstKeypadMoves")
-            firstKeypadMoves.subList(2, 3).forEach { firstKeypadMove ->
+            val secondMoves = firstKeypadMoves.map { PreviousInstructions(listOf(Instructions.of(it))) }.associateWith { nextInstructionsForNextRobot(it.current()) }
+//            secondMoves.forEach { (previousInstruction, nextInstructions) ->
+//            println("Instruction $previousInstruction, next instructions $nextInstructions")
+//                nextInstructions.groupBy { it.length() }.forEach { group ->
+//                    println("Iteration 2 Group size: ${group.key}, count ${group.value.size}")
+//                }
+//            }
+            val flattenSecondMoves = secondMoves.flatMap { (k, v) -> v.map { k.add(it) } }
+//            println("Second instructions : ${flattenSecondMoves.map { sm -> sm.previousInstructions[1] }.toSet()}")
+            var minLength = flattenSecondMoves.minOf { it.current().length() }
+            println("Iteration 2, min length: $minLength")
+            val filteredFlattenedSecondMoves = flattenSecondMoves//.filter { it.current().length() == minLength }
 
-                val groups = firstKeypadMove.split("A").dropLast(1).groupingBy { it }.eachCount()
-                val nextGroups = groups.map { (group, count) ->
-                    val groupInstructions = "A${group}A"
-                    val possibleNextInstructions =
-                        groupInstructions.zipWithNext().map { directionalMappings[it]!!.map { s -> "${s}A" } }
-                    cartesianProduct(possibleNextInstructions) { it.reduce { acc, s -> acc + s } }
+            var flattenedNextMoves: List<PreviousInstructions> = flattenSecondMoves
+            lateinit var nextMoves: Map<PreviousInstructions, List<Instructions>>
+
+            (3..26).forEach { iteration ->
+                nextMoves = flattenedNextMoves.associateWith { nextInstructionsForNextRobot(it.current()) }
+                flattenedNextMoves = nextMoves.flatMap { (k, v) -> v.map { k.add(it) } }
+                minLength = flattenedNextMoves.minOf { it.current().length() }
+                flattenedNextMoves = flattenedNextMoves.filter { it.current().length() == minLength }
+                println("Iteration $iteration Min length: ${minLength}")
+            }
+
+            minLength = flattenedNextMoves.minOf { it.current().length() }
+            code.replace("A", "").toLong() * minLength
+
+            // 77523971440020 too low
+            /*
+
+                    val thirdMoves = filteredFlattenedSecondMoves.associateWith { nextInstructionsForNextRobot(it.current()) }
+                    thirdMoves.forEach { (previousInstruction, nextInstructions) ->
+                        nextInstructions.groupBy { it.length() }.forEach { group ->
+                            println("Iteration 3 Group size: ${group.key}, count ${group.value.size}")
+                        }
+                    }
+                    val flattenThirdMoves = thirdMoves.flatMap { (k, v) -> v.map { k.add(it)}}
+                    minLength = flattenThirdMoves.minOf { it.current().length() }
+                    val filteredFlattenedThirdMoves = flattenThirdMoves.filter { it.current().length() == minLength }
+                    println("Third instructions : ${filteredFlattenedThirdMoves.map { sm -> sm.previousInstructions[1] }.toSet()}")
+                    println("Iteration 3 Size: ${filteredFlattenedThirdMoves.size}")
+
+                    val fourthMoves = filteredFlattenedThirdMoves.associateWith { nextInstructionsForNextRobot(it.current()) }
+                    val flattenFourthMoves = fourthMoves.flatMap { (k, v) -> v.map { k.add(it)}}
+                    minLength = flattenFourthMoves.minOf { it.current().length() }
+                    val filteredFlattenFourthMoves = flattenFourthMoves.filter { it.current().length() == minLength }
+                    println("Fourth instructions : ${filteredFlattenFourthMoves.map { sm -> sm.previousInstructions[1] }.toSet()}")
+
+                    val fifthMoves = filteredFlattenFourthMoves.associateWith { nextInstructionsForNextRobot(it.current()) }
+                    val flattenFifthMoves = fifthMoves.flatMap { (k, v) -> v.map { k.add(it)}}
+                    minLength = flattenFifthMoves.minOf { it.current().length() }
+                    val filteredFlattenFifthMoves = flattenFifthMoves.filter { it.current().length() == minLength }
+                    println("Fifth instructions : ${filteredFlattenFifthMoves.map { sm -> sm.previousInstructions[1] }.toSet()}")
+
+                    val sixthMoves = filteredFlattenFifthMoves.associateWith { nextInstructionsForNextRobot(it.current()) }
+                    val flattenSixthMoves = sixthMoves.flatMap { (k, v) -> v.map { k.add(it)}}
+                    minLength = flattenSixthMoves.minOf { it.current().length() }
+                    val filteredFlattenSixthMoves = flattenSixthMoves.filter { it.current().length() == minLength }
+                    println("Sixth instructions : ${filteredFlattenSixthMoves.map { sm -> sm.previousInstructions[1] }.toSet()}")
+
+            */
+
+            /*
+                    codes.subList(0, 1).forEach { code ->
+                        val firstCode = code.split("").filter { it.isNotEmpty() }
+                        val instructions = listOf("A") + firstCode
+                        val firstKeypadMoves = getMoves(numericKeypadMoves, instructions.joinToString(""))
+                        println("code $code: first moves: $firstKeypadMoves")
+
+                        val secondMoves = firstKeypadMoves.associateWith { instructionsForNextRobot(it) }
+                        secondMoves.forEach { (previousInstruction, nextInstructions) ->
+                            println("Instruction $previousInstruction, next instructions $nextInstructions")
+                            nextInstructions.groupBy { it.length }.forEach { group ->
+                                println("Group size: ${group.key}, count ${group.value.size}")
+                            }
+                        }
+            *//*
+
+            val minLength = secondMoves.values.minOf { possibleMoves -> possibleMoves.minOf { it.length }}
+            val filteredSecondMoves = secondMoves.filter { it.value.minOf { s -> s.length } == minLength }
+            filteredSecondMoves.forEach { (previousInstruction, nextInstructions) ->
+                println("Filtered instruction $previousInstruction, next instructions $nextInstructions")
+                nextInstructions.groupBy { it.length }.forEach { group ->
+                    println("Group size: ${group.key}, count ${group.value.size}")
                 }
-                var nextGroups2 = nextIteration(mapOf(Pair(firstKeypadMove, 1)))
+            }
+*//*
+
+            val result = (1..24).fold(firstKeypadMoves.last()) { acc, _ -> oneInstructionsForNextRobot(acc)}
+
+            println("Length ${result.length}")
+            println(result)
+
+            *//* firstKeypadMoves.subList(2, 3).forEach { firstKeypadMove ->
+
+                 val groups = firstKeypadMove.split("A").dropLast(1).groupingBy { it }.eachCount()
+                 val nextGroups = groups.map { (group, count) ->
+                     val groupInstructions = "A${group}A"
+                     val possibleNextInstructions =
+                         groupInstructions.zipWithNext().map { directionalMappings[it]!!.map { s -> "${s}A" } }
+                     cartesianProduct(possibleNextInstructions) { it.reduce { acc, s -> acc + s } }
+                 }
+                 *//**//*var nextGroups2 = nextIteration(mapOf(Pair(firstKeypadMove, 1)))
                 (2..3).forEach { i ->
                     nextGroups2 = nextGroups2.flatMap { nextIteration(it) }
                     val minSize = nextGroups2.minOf { m -> m.map { it.value * it.key.length}.sum() }
                     nextGroups2 = nextGroups2.filter { it.size == minSize }
                     println("Iteration $i")
-                }
-                /*var nextInstructions = cartesianProduct(nextGroups) { it.reduce { acc, s -> acc + s } }
+                }*//**//*
+               *//**//* var nextInstructions = cartesianProduct(nextGroups) { it.reduce { acc, s -> acc + s } }
                 println(nextInstructions)
-                (2..25).forEach { iteration ->
+                (2..5).forEach { iteration ->
                     val nextNextGroups = nextInstructions.first().split("A").dropLast(1).map { group ->
                         val groupInstructions = "A${group}A"
                         val possibleNextInstructions =
@@ -176,11 +322,11 @@ class Day21 : DailyChallenge {
                     }
                     nextInstructions = cartesianProduct(nextNextGroups) { it.reduce { acc, s -> acc + s } }
                     println("iteration $iteration")
-                }*/
-            }
+                }*//**//*
+            }*//*
         }
-
-        return 0L
+ */
+        }
     }
 
     private fun buildMaps(input: List<List<Pair<String, Int>>>): List<Map<String, Int>> {
@@ -205,25 +351,25 @@ class Day21 : DailyChallenge {
         Pair(Pair('<', 'v'), setOf(">")),
         Pair(Pair('<', '>'), setOf(">>")),
         Pair(Pair('<', '^'), setOf(">^")),
-        Pair(Pair('<', 'A'), setOf(">^>", ">>^")),
+        Pair(Pair('<', 'A'), setOf(/*">^>", */">>^")),
         Pair(Pair('v', 'v'), setOf("")),
         Pair(Pair('v', '<'), setOf("<")),
         Pair(Pair('v', '>'), setOf(">")),
         Pair(Pair('v', '^'), setOf("^")),
-        Pair(Pair('v', 'A'), setOf("^>", ">^")),
+        Pair(Pair('v', 'A'), setOf("^>"/*, ">^"*/)),
         Pair(Pair('>', '>'), setOf("")),
         Pair(Pair('>', 'v'), setOf("<")),
         Pair(Pair('>', '<'), setOf("<<")),
-        Pair(Pair('>', '^'), setOf("<^", "^<")),
+        Pair(Pair('>', '^'), setOf("<^"/*, "^<"*/)),
         Pair(Pair('>', 'A'), setOf("^")),
         Pair(Pair('^', '^'), setOf("")),
         Pair(Pair('^', 'v'), setOf("v")),
         Pair(Pair('^', '<'), setOf("v<")),
-        Pair(Pair('^', '>'), setOf("v>", ">v")),
+        Pair(Pair('^', '>'), setOf("v>"/*, ">v"*/)),
         Pair(Pair('^', 'A'), setOf(">")),
         Pair(Pair('A', 'A'), setOf("")),
         Pair(Pair('A', 'v'), setOf("<v", "v<")),
-        Pair(Pair('A', '<'), setOf("v<<", "<v<")),
+        Pair(Pair('A', '<'), setOf("v<<"/*, "<v<"*/)),
         Pair(Pair('A', '>'), setOf("v")),
         Pair(Pair('A', '^'), setOf("<"))
     )
