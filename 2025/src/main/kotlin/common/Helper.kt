@@ -136,3 +136,5 @@ data class Matrix<T>(val matrix: List<List<T>>) {
         }
     }
 }
+
+fun <E> Iterable<E>.indexesOf(e: E) = mapIndexedNotNull{ index, elem -> index.takeIf{ elem == e } }
