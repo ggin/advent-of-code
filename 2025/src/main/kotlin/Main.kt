@@ -1,5 +1,5 @@
-import day.Day4
+import day.Day5
 
 fun main() {
-    Day4().run()
+    Day5().run()
 }
